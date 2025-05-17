@@ -29,54 +29,59 @@ This project focuses on analyzing network traffic between two Azure virtual mach
   *Note: Make a note of the **public IP address** of your Windows VM — you'll need it shortly.*
 
   <!-- Screenshot: Starting VMs and viewing public IPs -->
-  <p><img src="images/step1-start-vms-and-get-ip.png" width="750" alt="Start VMs and check public IPs in Azure" /></p>
+  <p>
+    <img src="images/an-1.jpg" width="750" alt="Start VMs and check public IPs in Azure" />
+  </p>
 
 - Once the VMs are running, open the **Remote Desktop Connection** tool in Windows.
 
-- In the **Computer** field, enter the public IP address of your Windows VM.  
-  Use the friendly name "windows-vm" and check the box for "Reconnect if the connection is dropped."
-
-  <!-- Screenshot: RDP setup screen with IP and friendly name -->
-  <p><img src="images/step1-rdp-setup.png" width="750" alt="Remote Desktop Connection setup" /></p>
+- In the **Computer** field, enter the public IP address of your Windows VM and click Connect.
+ 
+ <!-- Screenshot: RDP setup screen with IP and friendly name -->
+  <p>
+    <img src="images/an-2.jpg" width="750" alt="Remote Desktop Connection setup" />
+  </p>
 
 - Enter the **username and password** you set up for the VM during deployment.
 
   <!-- Screenshot: Entering RDP credentials -->
-  <p><img src="images/step1-enter-credentials.png" width="750" alt="Entering credentials for RDP" /></p>
-
+  <p>
+    <img src="images/an-3.jpg" width="750" alt="Entering credentials for RDP" />
+  </p>
+- Now you will be able to access and use the Windows VM
+  <p>
+    <img src="images/an-4.jpg" width="750" alt="Entering credentials for RDP" />
+  </p>
 - Once connected, open **Microsoft Edge** in the Windows VM and navigate to [Wireshark.org](https://www.wireshark.org).
 
 - Download the **Windows x64 Installer**, run the setup, and complete the installation with default options.
+   <p>
+    <img src="images/an-5.jpg" width="750" alt="Entering credentials for RDP" />
+  </p>
+  <h2>📡 Step 2: Monitor ICMP Traffic Between Virtual Machines</h2>
 
-<h2>📡 Step 2: Observe ICMP Traffic Using Wireshark and PowerShell</h2>
+- Launch **Wireshark** inside the Windows VM.
 
-- Open **Wireshark** inside the Windows VM.
-
-- Select the active **Ethernet interface** and click the **shark fin icon** to begin capturing packets.
+- From the list of available interfaces, select the active **Ethernet adapter**, then click the **shark fin icon** to begin packet capture.
 
   <!-- Screenshot: Start Wireshark capture -->
-  <p><img src="images/step2-wireshark-start.png" width="750" alt="Starting capture in Wireshark" /></p>
+  <p><img src="images/step2-wireshark-start.png" width="750" alt="Starting Wireshark packet capture" /></p>
 
-- In the filter bar, type `icmp` and press **Enter** to isolate ICMP traffic.
+- In the filter bar at the top, type `icmp` and press **Enter** to isolate only ICMP packets (used by ping).
 
-  <!-- Screenshot: ICMP filter applied -->
-  <p><img src="images/step2-icmp-filter.png" width="750" alt="Wireshark ICMP filter active" /></p>
+  <!-- Screenshot: ICMP filter in Wireshark -->
+  <p><img src="images/step2-icmp-filter.png" width="750" alt="Wireshark ICMP filter" /></p>
 
-- Go back to the **Azure Portal**, select the **Linux VM**, and go to the **Networking** tab.  
-  Copy its **private IP address**.
+- In the **Azure Portal**, navigate to your **Linux VM**, select **Networking**, and copy its **Private IP address**.
 
-  <!-- Screenshot: Linux VM private IP in Azure -->
-  <p><img src="images/step2-linux-private-ip.png" width="750" alt="Private IP of Linux VM" /></p>
+  <!-- Screenshot: Linux VM private IP -->
+  <p><img src="images/step2-linux-private-ip.png" width="750" alt="Linux VM Private IP in Azure" /></p>
 
-- In **PowerShell** on the Windows VM, run:
+- Switch back to the Windows VM and open **PowerShell**.
+
+- Use the following command to ping the Linux VM:
   ```powershell
   ping <Linux-Private-IP>
-
-
-  <!-- Screenshot: Wireshark download and installation -->
-  <p><img src="images/step1-wireshark-install.png" width="750" alt="Installing Wireshark on Windows VM" /></p>
-
-> ✅ **At this point**, you’re connected to your Windows VM and ready to begin capturing and analyzing network traffic using Wireshark.
 
 
 
