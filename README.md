@@ -35,7 +35,6 @@ This project focuses on analyzing network traffic between two Azure virtual mach
 <h2>🔌 Step 1: Connect to Windows VM and Install Wireshark</h2>
 
 - Log in to the [Azure Portal](https://portal.azure.com/) and navigate to the **Virtual Machines** section.
-
 - Start both the Windows and Linux VMs.  
   📌 *Note the public IP address of the Windows VM — you'll need it to connect via RDP.*
 
@@ -43,29 +42,27 @@ This project focuses on analyzing network traffic between two Azure virtual mach
   <img src="images/an-1.jpg" width="750" alt="Starting VMs and noting public IPs in Azure" />
 </p>
 
-- Open the **Remote Desktop Connection** tool on your Windows 11 host system.
-
-- In the **Computer** field, enter the public IP address of your Windows VM and click **Connect**.
+- Open **Remote Desktop Connection** on your Windows 11 host.
+- Enter the public IP of the Windows VM and click **Connect**.
 
 <p align="center">
   <img src="images/an-2.jpg" width="750" alt="Remote Desktop setup screen" />
 </p>
 
-- Enter the **username and password** configured during VM setup.
+- Enter the login credentials created during VM setup.
 
 <p align="center">
   <img src="images/an-3.jpg" width="750" alt="RDP login credentials" />
 </p>
 
-- Once connected, you'll have full access to your Windows VM:
+- You’ll now have access to the Windows VM desktop.
 
 <p align="center">
   <img src="images/an-4.jpg" width="750" alt="Windows VM RDP session active" />
 </p>
 
-- Open **Microsoft Edge** inside the VM and go to [Wireshark.org](https://www.wireshark.org).
-
-- Download the **Windows x64 Installer**, run the setup, and complete installation using default options.
+- Open **Microsoft Edge** in the VM and download Wireshark from [Wireshark.org](https://www.wireshark.org).
+- Install Wireshark using the default settings.
 
 <p align="center">
   <img src="images/an-5.jpg" width="750" alt="Downloading and installing Wireshark" />
@@ -75,34 +72,34 @@ This project focuses on analyzing network traffic between two Azure virtual mach
 
 <h2>📡 Step 2: Monitor ICMP Traffic Between Virtual Machines</h2>
 
-- Launch **Wireshark** inside the Windows VM.
-
-- From the interface list, select the active **Ethernet adapter**, then click the **shark fin icon** to begin packet capture.
+- Launch **Wireshark** on the Windows VM.
+- Select the active **Ethernet** adapter and click the **shark fin icon** to begin capturing.
 
 <p align="center">
   <img src="images/icmp1.jpg" width="750" alt="Starting packet capture in Wireshark" />
 </p>
 
-- In the **Wireshark filter bar**, type `icmp` and press **Enter** to display only ICMP packets (used by ping).
+- Apply the filter `icmp` to isolate ICMP traffic.
 
 <p align="center">
   <img src="images/icmp2.jpg" width="750" alt="Wireshark ICMP traffic filter" />
 </p>
 
-- Next in the Azure Portal, navigate to the **Linux VM**, select the **Networking** tab, and copy the **Private IP address**.
+- In the Azure Portal, navigate to the Linux VM’s **Networking** tab and copy its **Private IP address**.
 
 <p align="center">
   <img src="images/icmp3.jpg" width="750" alt="Linux VM private IP address in Azure" />
 </p>
 
-- Return to the windows VM, open **PowerShell**, and run the following command: `ping <Linux-Private-IP>`
-- Once you run the ping command, you'll observe ICMP traffic flowing between the Windows and linux VMs which shows us our windows-vm (10.0.0.4) end the request to the linux-vm (10.0.0.5) and the linux-vm send a reply back to the winows-vm. Wireshark and PowerShell both show that we just successfully tested the connection between the two VMs.
+- In PowerShell on the Windows VM, run: `ping <Linux-Private-IP>`
+
+You’ll observe ICMP packets in Wireshark and replies in PowerShell, confirming successful communication between the two VMs.
 
 <table>
   <tr>
     <td align="center"><strong>Opening PowerShell</strong></td>
     <td align="center"><strong>ICMP Traffic in Wireshark</strong></td>
-    <td align="center"><strong>Output of Pinging linux-vm in PowerShell</strong></td>
+    <td align="center"><strong>Ping Output in PowerShell</strong></td>
   </tr>
   <tr>
     <td><img src="images/icmp4.jpg" width="300" alt="Opening PowerShell" /></td>
@@ -110,40 +107,41 @@ This project focuses on analyzing network traffic between two Azure virtual mach
     <td><img src="images/icmp5.png" width="300" alt="Ping in PowerShell" /></td>
   </tr>
 </table>
-- Now in PowerShell, initiate a perpetual ping to the linux-vm with the command ping 10.0.0.5 -t. This command tells the windows-vm to ping the linux-vm non-stop.
+
+- For continuous monitoring, run: `ping <Linux-Private-IP> -t`
+
 <p align="center">
-  <img src="images/icmp6.jpg" width="750" alt="Linux VM private IP address in Azure" />
+  <img src="images/icmp6.jpg" width="750" alt="Continuous ICMP traffic" />
 </p>
+
+---
+
 <h2>🛡️ Step 3: Block ICMP Traffic Using Network Security Group (NSG)</h2>
 
-- While the continuous ping is running from the Windows VM to the Linux VM, head back to the **Azure Portal**.
-
-- Navigate to the **Linux VM**, select the **Networking** tab, and click on the **Network Settings**, then you will be able to see the Network security group(usually named something like `linux-vm-nsg`).
+- While the continuous ping is running, open the **Linux VM > Networking > Network security group** in Azure.
 
 <p align="center">
   <img src="images/nsg1.jpg" width="750" alt="Open NSG for Linux VM" />
 </p>
 
-- Now click on **Create**, and choose **Inbound security rules**, then click **+ Add** to create a new rule.
+- Click **Inbound security rules > + Add**, and configure the following:
 
-- Fill in the rule as follows:
-  - **Source**: Any  
-  - **Source Port Ranges**: * (asterisk)  
-  - **Destination**: Any  
-  - **Destination Port Ranges**: * (asterisk)  
-  - **Protocol**: ICMPv4
-  - **Action**: Deny  
-  - **Priority**: 290 (lower number = higher priority)  
-  - **Name**: Deny-ICMP
+```
+Source: Any
+Source Port Ranges: *
+Destination: Any
+Destination Port Ranges: *
+Protocol: ICMPv4
+Action: Deny
+Priority: 290
+Name: Deny-ICMP
+```
 
 <p align="center">
   <img src="images/nsg2.jpg" width="750" alt="Adding NSG rule to block ICMP" />
 </p>
 
-- Click **Add** to apply the rule.
-
-- Once the rule is active, return to the Windows VM and observe the PowerShell ping output and Wireshark.  
-  You'll start seeing **Request Timed Out** messages and ICMP packets being dropped.
+- Return to the Windows VM — ping requests will now **time out** and ICMP traffic will stop.
 
 <table>
   <tr>
@@ -156,41 +154,162 @@ This project focuses on analyzing network traffic between two Azure virtual mach
   </tr>
 </table>
 
-> ✅ This demonstrates how Network Security Groups can enforce firewall rules at the subnet or VM level to block specific types of traffic, such as ICMP (used in ping).
+> ✅ NSGs act as firewalls at the VM or subnet level, allowing or denying traffic based on rules.
+
+---
 
 <h2>🔄 Step 4: Remove NSG Rule and Resume ICMP Communication</h2>
 
-- With the ICMP traffic currently blocked due to the NSG rule, we’ll now remove the rule and observe whether ping connectivity is restored.
-
-- In the **Azure Portal**, return to the **Linux VM**'s **Networking** tab and open the **Network Security Group**.
-
-- Under **Inbound security rules**, locate the rule you created earlier (e.g., `Deny-ICMP`) and click the **trash can icon** to delete it.
+- In Azure, go back to the **Inbound rules** and delete the `Deny-ICMP` rule.
 
 <p align="center">
   <img src="images/nsg6.jpg" width="750" alt="Deleting Deny-ICMP NSG rule" />
 </p>
 
-- Confirm the deletion when prompted by Azure.
-
-- Once the rule is deleted, go back to your **Windows VM**.  
-  You should immediately see that the ping replies from the Linux VM have resumed in **PowerShell**, and ICMP echo traffic is once again visible in **Wireshark**.
+- The ping will resume almost immediately in PowerShell and Wireshark.
 
 <table>
   <tr>
-    <td align="center"><strong>ICMP Replies Resumed in PowerShell</strong></td>
-    <td align="center"><strong>ICMP Replies Visible in Wireshark</strong></td>
+    <td align="center"><strong>ICMP Replies in PowerShell</strong></td>
+    <td align="center"><strong>ICMP Resumed in Wireshark</strong></td>
   </tr>
   <tr>
     <td><img src="images/nsg7.jpg" width="360" alt="Ping replies returned" /></td>
-    <td><img src="images/nsg8.jpg" width="360" alt="ICMP reply packets back in Wireshark" /></td>
+    <td><img src="images/nsg8.jpg" width="360" alt="ICMP reply packets in Wireshark" /></td>
   </tr>
 </table>
 
-- If the ping does not resume right away, wait 10–15 seconds, or manually stop and restart the ping process by pressing `Ctrl + C` in PowerShell and running the ping command again.
+---
 
-- You’ve now successfully demonstrated how **NSG rules can dynamically control traffic** between virtual machines, and how quickly those changes take effect in a live cloud environment.
+<h2>🔐 Step 5: Observe SSH and DHCP Traffic</h2>
 
-> 💡 This hands-on verification is commonly used in real-world IT and cybersecurity roles to confirm firewall or routing changes in Azure environments.
+### 🔸 Observe SSH Traffic
+
+SSH (Secure Shell) is used to securely access Linux systems remotely over the network. In this step, we'll observe encrypted SSH packets between the Windows and Linux VMs.
+
+- Open **Wireshark** and apply the filter: `ssh`. Then start a new packet capture session.
+- On the Windows VM, open **PowerShell** and initiate a secure SSH session:
+
+```powershell
+ssh <username>@<Linux-Private-IP>
+```
+
+📌 Replace `<username>` and `<Linux-Private-IP>` with your actual Linux credentials.
+
+- When prompted, type `yes` to confirm the connection, then enter the Linux VM password.
+
+<p align="center">
+  <img src="images/ssh1.jpg" width="750" alt="SSH connection from PowerShell" />
+</p>
+
+- You'll now be logged into the Linux VM via the terminal. Wireshark will display encrypted SSH traffic packets.
+
+<p align="center">
+  <img src="images/ssh2.jpg" width="750" alt="Encrypted SSH packets in Wireshark" />
+</p>
+
+<p align="center">
+  <img src="images/ssh3.jpg" width="750" alt="More SSH packets in Wireshark" />
+</p>
+
+- Once done, type `exit` in PowerShell to close the SSH session.
+
+> 🛡️ SSH encrypts both authentication and session data, making it ideal for secure system administration and data integrity.
+
+---
+
+### 🔸 Observe DHCP Traffic
+
+DHCP (Dynamic Host Configuration Protocol) is used to assign dynamic IP addresses to devices. In Azure, VMs are assigned reserved dynamic IPs via DHCP.
+
+Releasing an IP address manually using `ipconfig /release` can disconnect your RDP session. Instead, we’ll simulate DHCP traffic using a batch script that automates both release and renew operations.
+
+#### 🛠️ Step-by-Step DHCP Simulation
+
+1. **Open Notepad** in the Windows VM and write the following lines:
+
+```plaintext
+ipconfig /release
+ipconfig /renew
+```
+
+2. **Save the file** as `dhcp.bat` in the path `C:\ProgramData`.
+
+<p align="center">
+  <img src="images/dhcp1.jpg" width="750" alt="Creating DHCP batch script" />
+</p>
+
+3. Open **Wireshark**, apply the filter: `dhcp`, and start a new capture.
+
+<p align="center">
+  <img src="images/dhcp2.jpg" width="750" alt="Wireshark DHCP filter" />
+</p>
+
+4. In **PowerShell**, navigate to the script location and execute it:
+
+```powershell
+cd C:\ProgramData
+ls
+.\dhcp.bat
+```
+
+<p align="center">
+  <img src="images/dhcp3.2.jpg" width="750" alt="Running DHCP script in PowerShell" />
+</p>
+
+- During execution, the VM will momentarily release and renew its IP address. This activity will be captured as DHCP discover, offer, request, and acknowledgment packets in Wireshark.
+
+<p align="center">
+  <img src="images/dhcp4.jpg" width="750" alt="DHCP traffic in Wireshark" />
+</p>
+
+> 💡 This process demonstrates how DHCP leasing works behind the scenes in Azure, and provides hands-on experience with IP assignment protocols — a vital networking concept for cloud and security engineers.
+
+
+<h2>🌐 Step 6: Analyze DNS and RDP Traffic</h2>
+
+### 🔸 DNS Traffic
+
+- In Wireshark, apply filter `dns` and run in PowerShell:  
+  `nslookup disney.com`
+
+<p align="center">
+  <img src="images/dns1.png" width="750" alt="DNS lookup in PowerShell" />
+</p>
+
+<p align="center">
+  <img src="images/dns2.jpg" width="750" alt="DNS query packets in Wireshark" />
+</p>
+
+---
+
+### 🔸 RDP Traffic
+
+- Apply filter `tcp.port == 3389` in Wireshark.  
+  You'll see consistent encrypted traffic during your RDP session.
+
+<p align="center">
+  <img src="images/rdp1.jpg" width="750" alt="RDP port filter in Wireshark" />
+</p>
+
+<p align="center">
+  <img src="images/rdp2.jpg" width="750" alt="RDP traffic in Wireshark" />
+</p>
+
+---
+
+<h2>✅ Conclusion</h2>
+
+In this project, we created two Azure virtual machines — one Windows and one Linux — and used them to explore and analyze real-time network traffic using Wireshark and PowerShell.
+
+We examined protocols like **ICMP**, **SSH**, **RDP**, **DNS**, and **DHCP**, and tested how **Network Security Groups (NSGs)** control traffic flow between VMs.
+
+This hands-on experience deepened our understanding of cloud networking, traffic analysis, and security rule implementation — all essential skills in IT and cybersecurity roles.
+
+*Project by Omeir Nore*
+
+
+
 
 
 
